@@ -324,6 +324,8 @@ class GraphHabitatRunner(Runner):
         
         self.add_ghost_flag = np.ones((1,self.valid_ghost_position.shape[0]))*False
         global_goal_position = self.global_goal_position.copy()
+        global_goal_position[:,0] = global_goal_position[:,0]-self.max_size[0]//2
+        global_goal_position[:,1] = global_goal_position[:,1]-self.max_size[1]//2
         return global_goal_position
 
     @torch.no_grad()
