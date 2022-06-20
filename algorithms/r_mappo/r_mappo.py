@@ -7,9 +7,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from onpolicy.utils.util import get_gard_norm, huber_loss, mse_loss
-from onpolicy.utils.valuenorm import ValueNorm
-from onpolicy.algorithms.utils.util import check
+from sim_to_real.utils.util import get_gard_norm, huber_loss, mse_loss
+from sim_to_real.utils.valuenorm import ValueNorm
+from sim_to_real.algorithms.utils.util import check
 
 class R_MAPPO():
     def __init__(self,
