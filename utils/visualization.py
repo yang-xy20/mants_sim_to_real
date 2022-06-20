@@ -101,10 +101,10 @@ def visualize_all(agent_id, fig, ax, img, grid_gt, pos, pos_gt, node_list, affin
     # for _ in range(5):
     #     fig.tight_layout()
 
-    if visualize:
-        plt.gcf().canvas.flush_events()
-        fig.canvas.start_event_loop(0.001)
-        plt.gcf().canvas.flush_events()
+    # if visualize:
+    #     plt.gcf().canvas.flush_events()
+    #     fig.canvas.start_event_loop(0.001)
+    #     plt.gcf().canvas.flush_events()
     
     # plt.show()
 
@@ -233,10 +233,10 @@ def visualize_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, global_goal_pos
     for _ in range(5):
         fig.tight_layout()
 
-    if visualize:
-        plt.gcf().canvas.flush_events()
-        fig.canvas.start_event_loop(0.001)
-        plt.gcf().canvas.flush_events()
+    # if visualize:
+    #     plt.gcf().canvas.flush_events()
+    #     fig.canvas.start_event_loop(0.001)
+    #     plt.gcf().canvas.flush_events()
 
     if save_gifs:
         fn = '{}/step-{:0>4d}.png'.format(dump_dir, t)

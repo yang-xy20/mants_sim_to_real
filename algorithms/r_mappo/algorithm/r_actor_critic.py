@@ -15,7 +15,7 @@ from mants_sim_to_real.algorithms.utils.mix import MIXBase
 from mants_sim_to_real.algorithms.utils.rnn import RNNLayer
 from mants_sim_to_real.algorithms.utils.act import ACTLayer
 from mants_sim_to_real.algorithms.utils.popart import PopArt
-from mants_sim_to_real.algorithms.utils.perception_graph import LinearAssignment
+from mants_sim_to_real.algorithms.utils.mgnn_revised import LinearAssignment
 from mants_sim_to_real.utils.util import get_shape_from_obs_space
 
 from einops import rearrange, repeat

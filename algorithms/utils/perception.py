@@ -4,8 +4,10 @@ import torch
 import torch.nn.functional as F
 from .graph_layer import GraphConvolution
 import torch.nn as nn
-from icecream import ic
-from onpolicy.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
 
 class Attblock(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,

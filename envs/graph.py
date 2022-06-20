@@ -279,5 +279,6 @@ class Graph(object):
                                         self.ghost_mask[idx,idy] = 0
                                         break
                                 break
+
     def merge_ghost_nodes(self, ghost_mask):
         self.ghost_mask *= ghost_mask

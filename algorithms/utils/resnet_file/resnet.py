@@ -309,7 +309,10 @@ def se_resneXt101(in_channels, base_planes, ngroups):
 
     return model
 
-from onpolicy.algorithms.utils.resnet_file.running_mean_and_var import RunningMeanAndVar
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.utils.resnet_file.running_mean_and_var import RunningMeanAndVar
 import torch.nn.functional as F
 import numpy as np
 class ResNetEncoder(nn.Module):
