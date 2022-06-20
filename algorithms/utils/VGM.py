@@ -8,7 +8,6 @@ from mants_sim_to_real.algorithms.utils.resnet_file import resnet
 from mants_sim_to_real.algorithms.utils.resnet_file.resnet import ResNetEncoder
 from .perception import Perception
 from .perception_graph import Perception_Graph
-from mants_sim_to_real.envs.habitat.utils.extractor import VisualEncoder
 from .agent_attention import AttentionModule
 
 
@@ -68,17 +67,15 @@ class VGMNet(nn.Module):
         # print(backbone)
         # print(resnet_baseplanes)
         self.args = args
-        if args.use_retrieval:
-            self.visual_encoder = VisualEncoder(args)
-        else:
-            self.visual_encoder = ResNetEncoder(
-                observation_space,
-                baseplanes=resnet_baseplanes,
-                ngroups=resnet_baseplanes//2,
-                make_backbone=getattr(resnet, backbone),
-                normalize_visual_inputs=normalize_visual_inputs,
-                output_size = self._hidden_size
-            )
+
+        self.visual_encoder = ResNetEncoder(
+            observation_space,
+            baseplanes=resnet_baseplanes,
+            ngroups=resnet_baseplanes//2,
+            make_backbone=getattr(resnet, backbone),
+            normalize_visual_inputs=normalize_visual_inputs,
+            output_size = self._hidden_size
+        )
         if self.use_agent_node:
             self.perception_unit = Perception_Graph(args.feature_dim)
         else:
