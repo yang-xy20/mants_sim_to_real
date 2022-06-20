@@ -26,40 +26,40 @@ class MIXBase(nn.Module):
     def __init__(self, args, obs_shape, action_space, cnn_layers_params=None, cnn_last_linear = True, graph_linear = True):
         super(MIXBase, self).__init__()
 
-        self._agent_invariant = False
-        self.invariant_type = False
+        self._agent_invariant = args.agent_invariant
+        self.invariant_type = args.invariant_type
         self._use_orthogonal = args.use_orthogonal
         self._activation_id = args.activation_id
         self._use_maxpool2d = args.use_maxpool2d
-        self._multi_layer_cross_attn = False
+        self._multi_layer_cross_attn = args.multi_layer_cross_attn
         self._norm_sum = False
         self.hidden_size = args.hidden_size
         self.mlp_hidden_size = args.mlp_hidden_size
         self.use_resnet = False
         self.use_vit = False
-        self.use_grid_simple = False
+        self.use_grid_simple = args.use_grid_simple
         self.cnn_last_linear = cnn_last_linear
-        self.grid_goal = False
-        self.grid_size =False
+        self.grid_goal = args.grid_goal
+        self.grid_size = args.grid_size
         self.cnn_use_attn = False
-        self.cnn_use_transformer =False
+        self.cnn_use_transformer =args.cnn_use_transformer
         self.action_mask = False
         self.grid_agent_id = False
-        self.grid_pos = False
-        self.grid_last_goal = False
+        self.grid_pos = args.grid_pos
+        self.grid_last_goal = args.grid_last_goal
         self.use_self_grid_pos = False
         self.grid_goal_simpler = False
         self.use_enhanced_id = False
         self.use_one_cnn_model = False
-        self.use_share_cnn_model = False
+        self.use_share_cnn_model = args.use_share_cnn_model
         self.num_agents = args.num_agents
         self.use_explicit_id = False
-        self.use_id_embedding = False
-        self.use_pos_embedding =False
-        self.use_intra_attn = False
-        self.use_self_attn = False
-        self.depth = False
-        self.add_grid_pos = False
+        self.use_id_embedding = args.use_id_embedding
+        self.use_pos_embedding = args.use_pos_embedding   
+        self.use_intra_attn = args.use_intra_attn
+        self.use_self_attn = args.use_self_attn
+        self.depth = args.attn_depth
+        self.add_grid_pos = args.add_grid_pos
         self.use_grid_pos_attn = False
         self._take_self = False
         self.use_flatten_attn = False
@@ -112,7 +112,6 @@ class MIXBase(nn.Module):
                     if "orientation" in key:
                         self.embed_keys.append(key)
                     else:
-                        import pdb;pdb.set_trace()
                         self.mlp_keys.append(key)
             else:
                 raise NotImplementedError
@@ -230,7 +229,7 @@ class MIXBase(nn.Module):
                 out_x = torch.cat([out_x, actor_feature], dim=1)
                 if len(self.transformer_keys)>0:
                     out_x = torch.cat([out_x, actor_trans_x], dim = 1)
-            elif self.invariant_type in ["split_attn", "alter_attn"]:
+            elif self.invariant_type in ["split_attn", "alter_attn", "hama"]:
                 out_x = [actor, others]
             else:
                 raise NotImplementedError
@@ -275,7 +274,6 @@ class MIXBase(nn.Module):
         return out_x
 
     def _build_cnn_model(self, obs_shape, cnn_keys, cnn_layers_params, hidden_size, use_orthogonal, activation_id, local_cnn=False):
-        
         if cnn_layers_params is None:
             cnn_layers_params = [(32, 8, 4, 0), (64, 4, 2, 0), (64, 3, 1, 0)]
         else:
@@ -298,7 +296,7 @@ class MIXBase(nn.Module):
             if key in ['rgb','depth','image','occupy_image']:
                 n_cnn_input += obs_shape[key].shape[2] 
                 cnn_dims = np.array(obs_shape[key].shape[:2], dtype=np.float32)
-            elif key in ['stack_obs','global_merge_obs','global_merge_goal']:
+            elif key in ['stack_obs']:
                 if self.use_one_cnn_model:
                     n_cnn_input += obs_shape[key].shape[0]
                 else:

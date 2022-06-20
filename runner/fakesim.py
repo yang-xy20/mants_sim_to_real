@@ -7,10 +7,10 @@ class fakesim:
         self.global_step_cnt = 0
         self.data = []
         self.robot_num = robot_num
-        with open("/home/yangxy/yangxy/onpolicy/onpolicy/sim_to_real/data/mkn3data.pkl", "rb") as tt:
+        with open("/home/yangxy/yangxy/onpolicy/onpolicy/mants_sim_to_real/data/mkn3data.pkl", "rb") as tt:
             readdata = pickle.load(tt)
             self.data.append(readdata)
-        with open("/home/yangxy/yangxy/onpolicy/onpolicy/sim_to_real/data/mkn5data.pkl", "rb") as tt:
+        with open("/home/yangxy/yangxy/onpolicy/onpolicy/mants_sim_to_real/data/mkn5data.pkl", "rb") as tt:
             readdata = pickle.load(tt)
             self.data.append(readdata)
     

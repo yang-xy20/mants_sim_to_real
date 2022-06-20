@@ -32,6 +32,14 @@ def draw_circle(ax, pos, grid, color="Grey", alpha=0.9, radius=3):
     
     cir1 = Circle(xy = (x, y), radius=radius, alpha=alpha, fc=color, ec=color)
     ax.add_patch(cir1)
+
+def draw_global_goal_circle(ax, pos, grid, color="Grey", alpha=0.9, radius=3):
+    
+    y, x = pos
+    x, y = x,  y
+    
+    cir1 = Circle(xy = (x, y), radius=radius, alpha=alpha, fc=color, ec=color)
+    ax.add_patch(cir1)
     
     
 def draw_line(ax, node_pos, neighbor_pos, grid, color="Grey", alpha=0.9):
@@ -167,7 +175,7 @@ def visualize_frontier_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, all_gl
         fn = '{}/step-{:0>4d}.png'.format(dump_dir, t)
         fig.savefig(fn)
 
-def visualize_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, merge_node_list, merge_affinity, global_goal, merge_ghost_node, merge_ghost_mask, dump_dir, t, visualize, save_gifs):
+def visualize_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, global_goal_position, merge_node_list, merge_affinity, global_goal, merge_ghost_node, merge_ghost_mask, dump_dir, t, visualize, save_gifs):
     #import pdb;pdb.set_trace()
     ax.clear()
     ax.set_yticks([])
@@ -188,6 +196,9 @@ def visualize_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, merge_node_list
 
         # Draw predicted agent pose
         draw_pose(ax, p_pred, grid_pred, color="Red", agent_size=8, alpha=0.6)
+    if np.all(global_goal_position) != None:
+        for idx, node_position in enumerate(global_goal_position):
+            draw_global_goal_circle(ax, node_position, grid_gt, color="blue", alpha=0.9)
     
     if np.all(merge_node_list) != None and np.all(merge_affinity) != None:
         draw_point_list = []
@@ -197,7 +208,6 @@ def visualize_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, merge_node_list
                 neighbor_position = merge_node_list[neighbor_idx]
                 draw_line(ax, node_position, neighbor_position, grid_gt, color="blue", alpha=0.9)
             draw_point_list.append([node_position])
-     
         for idx, node_position in enumerate(draw_point_list):
             if idx in global_goal:
                 draw_circle(ax, node_position, grid_gt, color="red", alpha=0.9)
@@ -218,9 +228,6 @@ def visualize_map(fig, ax, grid_gt, grid_pred, pos_gt, pos_pred, merge_node_list
                     draw_point_list.append([node_position])
         for node_position in draw_point_list:
             draw_circle(ax, node_position, grid_gt, color="grey", alpha=0.9)
-        # for i in range(frontier_loc.shape[0]):
-        #     draw_circle(ax, [frontier_loc[i]*5/100.0], grid_gt, color="blue", alpha=0.9)
-        #self._draw_boundary(self.node_list[curr_info['curr_node']], CURR_NODE)
 
     #import pdb;pdb.set_trace()
     for _ in range(5):
@@ -327,14 +334,14 @@ def get_colored_map(mat, collision_map, visited, visited_gt, goal,
 
     current_palette = sns.color_palette()
 
-    selem = skimage.morphology.disk(4)
-    for g in goal:
-        goal_mat = np.zeros((m, n))
-        goal_mat[g[0], g[1]] = 1
-        goal_mat = 1 - skimage.morphology.binary_dilation(
-            goal_mat, selem) != True
+    #selem = skimage.morphology.disk(4)
+    # for g in goal:
+    #     goal_mat = np.zeros((m, n))
+    #     goal_mat[g[0], g[1]] = 1
+    #     goal_mat = 1 - goal_mat != True
+    #     #skimage.morphology.binary_dilation(goal_mat, selem)
 
-        colored = fill_color(colored, goal_mat, current_palette[0])
+    #     colored = fill_color(colored, goal_mat, current_palette[0])
 
     current_palette = sns.color_palette("Paired")
 

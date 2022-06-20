@@ -430,7 +430,8 @@ class GraphHabitatRunner(Runner):
         # vis_grid_pred = np.flipud(vis_grid_pred)
        
         vu.visualize_map(self.figure_m, self.ax_m, vis_grid_gt[:, :, ::-1], vis_grid_pred[:, :, ::-1],
-                        self.pos, self.pos, 
+                        self.pos, self.pos,
+                        None, 
                         self.envs.graph_agent_0.node_position_list ,
                         self.envs.graph_agent_0.A,
                         self.envs.graph_agent_0.last_localized_node_idx,

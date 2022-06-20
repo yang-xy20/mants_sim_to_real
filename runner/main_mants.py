@@ -6,8 +6,8 @@ import numpy as np
 from pathlib import Path
 from collections import deque
 import torch
-from onpolicy.sim_to_real.envs.Graph_Env import GraphHabitatEnv
-from onpolicy.sim_to_real.utils.config import get_config
+from mants_sim_to_real.envs.Graph_Env import GraphHabitatEnv
+from mants_sim_to_real.utils.config import get_config
 from fakesim import fakesim
 
 def make_eval_env(all_args, run_dir):
@@ -37,10 +37,48 @@ def parse_args(args, parser):
     parser.add_argument('--matching_type', type=str)
     parser.add_argument('--map_resolution', type=int, default=5)
     parser.add_argument('--graph_memory_size', default=100, type=int)
-    
     parser.add_argument('--num_local_steps', type=int, default=25,
                     help="""Number of steps the local can
                         perform between each global instruction""")
+    # graph
+    parser.add_argument('--proj_frontier', action='store_true',
+                        default=False, help="by default True, restrict goals to frontiers")
+    parser.add_argument('--grid_pos', action='store_true',
+                        default=False, help="by default True, use grid_pos")
+    parser.add_argument('--agent_invariant', action='store_true',
+                        default=False, help="by default True, ")
+    parser.add_argument('--grid_goal', default=False, action='store_true')
+    parser.add_argument('--use_goal', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_local_single_map', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--grid_last_goal', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--add_grid_pos', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_id_embedding', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_pos_embedding', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_intra_attn', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_self_attn', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_single', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_grid_simple', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--cnn_use_transformer', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--use_share_cnn_model', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--multi_layer_cross_attn', action='store_true',
+                        default=False, help="by default True, use_goal")
+    parser.add_argument('--invariant_type', type=str, default = "attn_sum", choices = ["attn_sum", "split_attn", "mean", "alter_attn"])             
+    parser.add_argument('--attn_depth', default=2, type=int)
+    parser.add_argument('--grid_size', default=8, type=int)
+    parser.add_argument('--action_mask', default=False, action='store_true')
+
 
     # image retrieval
     all_args = parser.parse_known_args(args)[0]
@@ -109,7 +147,7 @@ def main(args):
 
     # run experiments
     
-    from onpolicy.sim_to_real.runner.graph_habitat_runner import GraphHabitatRunner as Runner
+    from mants_sim_to_real.runner.graph_habitat_runner import GraphHabitatRunner as Runner
 
     runner = Runner(config)
     

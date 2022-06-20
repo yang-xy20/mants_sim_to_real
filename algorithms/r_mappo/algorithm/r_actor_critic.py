@@ -36,7 +36,7 @@ class R_Actor(nn.Module):
         self._influence_layer_N = args.influence_layer_N 
         self._use_policy_vhead = args.use_policy_vhead 
         self._recurrent_N = args.recurrent_N 
-       
+        self._grid_goal = args.grid_goal
         self._use_mgnn = args.use_mgnn
        
         self.tpdv = dict(dtype=torch.float32, device=device)
@@ -45,7 +45,7 @@ class R_Actor(nn.Module):
 
         if 'Dict' in obs_shape.__class__.__name__:
             self._mixed_obs = True
-            self.base = MIXBase(args, obs_shape, action_space, cnn_layers_params=args.cnn_layers_params, cnn_last_linear = True, graph_linear= False)
+            self.base = MIXBase(args, obs_shape, action_space, cnn_layers_params=args.cnn_layers_params, cnn_last_linear = not self._grid_goal, graph_linear= False)
         else:
             self._mixed_obs = False
             self.base = CNNBase(args, obs_shape) if len(obs_shape)==3 else MLPBase(args, obs_shape, use_attn_internal=args.use_attn_internal, use_cat_self=True)

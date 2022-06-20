@@ -34,9 +34,11 @@ class GraphHabitatEnv(MultiHabitatEnv):
         self.episode_length = args.episode_length
         self.use_double_matching = args.use_double_matching
         self.dis_gap = args.dis_gap
+        self.build_graph = args.build_graph
+        
         
         self.dt = 10
-        super().__init__(args, run_dir)
+        super().__init__(args, True, run_dir)
    
 
     def update_merge_graph(self, pos):
