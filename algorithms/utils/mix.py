@@ -6,11 +6,15 @@ import torch.nn.functional as F
 import torchvision.models as models
 from .util import init
 from .resnet import MapNet
-from onpolicy.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
-from onpolicy.algorithms.utils.invariant import Invariant, AgentEncoder, AlterEncoder
+
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
+from mants_sim_to_real.algorithms.utils.invariant import Invariant, AgentEncoder, AlterEncoder
 from einops.layers.torch import Rearrange
 from einops import rearrange, repeat
-from onpolicy.algorithms.utils.VGM import VGMNet
+from mants_sim_to_real.algorithms.utils.VGM import VGMNet
 from .mgnn_batch import Batch_Perception_Graph
 from .mgnn_revised import Perception_Graph
 

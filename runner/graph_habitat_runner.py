@@ -19,7 +19,7 @@ import sys
 sys.path.append("../..")
 import joblib
 
-from torch_geometric.data import Data
+# from torch_geometric.data import Data
 from mants_sim_to_real.utils import pose as pu
 from mants_sim_to_real.utils import visualization as vu
 

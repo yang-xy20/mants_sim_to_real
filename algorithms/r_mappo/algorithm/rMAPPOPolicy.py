@@ -1,7 +1,10 @@
 import numpy as np
 import torch
-from onpolicy.sim_to_real.algorithms.r_mappo.algorithm.r_actor_critic import R_Actor, R_Critic
-from onpolicy.utils.util import update_linear_schedule
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.r_mappo.algorithm.r_actor_critic import R_Actor, R_Critic
+from mants_sim_to_real.utils.util import update_linear_schedule
 
 
 class R_MAPPOPolicy:

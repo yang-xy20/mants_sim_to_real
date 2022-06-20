@@ -1,11 +1,14 @@
 import torch
 import torch.nn as nn
 #from habitat_baselines.common.utils import CategoricalNet
-from onpolicy.algorithms.utils.resnet_file import resnet
-from onpolicy.algorithms.utils.resnet_file.resnet import ResNetEncoder
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.utils.resnet_file import resnet
+from mants_sim_to_real.algorithms.utils.resnet_file.resnet import ResNetEncoder
 from .perception import Perception
 from .perception_graph import Perception_Graph
-from onpolicy.envs.habitat.utils.extractor import VisualEncoder
+from mants_sim_to_real.envs.habitat.utils.extractor import VisualEncoder
 from .agent_attention import AttentionModule
 
 

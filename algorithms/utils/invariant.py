@@ -3,7 +3,11 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from onpolicy.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
+
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
 from einops.layers.torch import Rearrange
 from einops import rearrange, repeat
 import random

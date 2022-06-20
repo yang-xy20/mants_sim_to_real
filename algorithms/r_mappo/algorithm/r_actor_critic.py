@@ -5,15 +5,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from onpolicy.sim_to_real.algorithms.utils.util import init, check
-from onpolicy.sim_to_real.algorithms.utils.cnn import CNNBase
-from onpolicy.sim_to_real.algorithms.utils.mlp import MLPBase, MLPLayer
-from onpolicy.sim_to_real.algorithms.utils.mix import MIXBase
-from onpolicy.sim_to_real.algorithms.utils.rnn import RNNLayer
-from onpolicy.sim_to_real.algorithms.utils.act import ACTLayer
-from onpolicy.sim_to_real.algorithms.utils.popart import PopArt
-from onpolicy.sim_to_real.algorithms.utils.perception_graph import LinearAssignment
-from onpolicy.utils.util import get_shape_from_obs_space
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.algorithms.utils.util import init, check
+from mants_sim_to_real.algorithms.utils.cnn import CNNBase
+from mants_sim_to_real.algorithms.utils.mlp import MLPBase, MLPLayer
+from mants_sim_to_real.algorithms.utils.mix import MIXBase
+from mants_sim_to_real.algorithms.utils.rnn import RNNLayer
+from mants_sim_to_real.algorithms.utils.act import ACTLayer
+from mants_sim_to_real.algorithms.utils.popart import PopArt
+from mants_sim_to_real.algorithms.utils.perception_graph import LinearAssignment
+from mants_sim_to_real.utils.util import get_shape_from_obs_space
 
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
