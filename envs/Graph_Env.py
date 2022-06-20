@@ -3,8 +3,6 @@ from joblib import register_parallel_backend
 import numpy as np
 import math
 import gym
-import skimage.morphology
-import onpolicy
 from .graph import Graph
 import torch.nn as nn
 import torch
@@ -12,12 +10,14 @@ import os
 from .Env import MultiHabitatEnv
 from torchvision import transforms
 from PIL import Image
-from onpolicy.sim_to_real.utils import pose as pu
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.utils import pose as pu
 import random
-from icecream import ic
 import time
 from collections import deque
-from onpolicy.sim_to_real.utils.fmm_planner import FMMPlanner
+from mants_sim_to_real.utils.fmm_planner import FMMPlanner
 class GraphHabitatEnv(MultiHabitatEnv):
     def __init__(self, args, run_dir):
         self.num_agents = args.num_agents 

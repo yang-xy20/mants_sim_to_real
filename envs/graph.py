@@ -1,9 +1,9 @@
 import math
 import numpy as np
-import torch
-import onpolicy
-from onpolicy.sim_to_real.utils import pose as pu
-from icecream import ic
+import sys
+sys.path.append("../..")
+
+from mants_sim_to_real.utils import pose as pu
 from torch import nn
 
 class Node(object):
