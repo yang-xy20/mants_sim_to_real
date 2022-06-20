@@ -74,7 +74,7 @@ class R_Actor(nn.Module):
        
         self.to(device)
 
-    def forward(self, obs, frontier_graph_data, agent_graph_data, rnn_states, masks, available_actions=None, available_actions_first=None, available_actions_second=None, deterministic=False):        
+    def forward(self, obs , rnn_states, masks, available_actions=None, available_actions_first=None, available_actions_second=None, deterministic=False):        
         if self._mixed_obs:
             for key in obs.keys():
                 obs[key] = check(obs[key]).to(**self.tpdv)
@@ -90,7 +90,7 @@ class R_Actor(nn.Module):
         if available_actions_second is not None:
             available_actions_second = check(available_actions_second).to(**self.tpdv)
         
-        actor_features = self.base(obs, masks, frontier_graph_data, agent_graph_data)
+        actor_features = self.base(obs, masks)
 
         if self._use_naive_recurrent_policy or self._use_recurrent_policy:
             actor_features, rnn_states = self.rnn(actor_features, rnn_states, masks)
@@ -106,7 +106,7 @@ class R_Actor(nn.Module):
 
         return actions, action_log_probs, rnn_states
 
-    def evaluate_actions(self, obs, frontier_graph_data, agent_graph_data, rnn_states, action, masks, available_actions=None, available_actions_first=None, available_actions_second=None, active_masks=None):
+    def evaluate_actions(self, obs, rnn_states, action, masks, available_actions=None, available_actions_first=None, available_actions_second=None, active_masks=None):
         if self._mixed_obs:
             for key in obs.keys():
                 obs[key] = check(obs[key]).to(**self.tpdv)
@@ -127,7 +127,7 @@ class R_Actor(nn.Module):
         if active_masks is not None:
             active_masks = check(active_masks).to(**self.tpdv)
         
-        actor_features = self.base(obs, masks, frontier_graph_data, agent_graph_data)
+        actor_features = self.base(obs, masks)
         
         if self._use_naive_recurrent_policy or self._use_recurrent_policy:
             actor_features, rnn_states = self.rnn(actor_features, rnn_states, masks)
@@ -214,7 +214,7 @@ class R_Critic(nn.Module):
 
         self.to(device)
 
-    def forward(self, share_obs, frontier_graph_data, agent_graph_data, rnn_states, masks, rank = None):
+    def forward(self, share_obs, rnn_states, masks, rank = None):
         if self._mixed_obs:
             for key in share_obs.keys():        
                 share_obs[key] = check(share_obs[key]).to(**self.tpdv)
@@ -223,7 +223,7 @@ class R_Critic(nn.Module):
         rnn_states = check(rnn_states).to(**self.tpdv)
         masks = check(masks).to(**self.tpdv)
 
-        critic_features = self.base(share_obs, masks, frontier_graph_data, agent_graph_data)
+        critic_features = self.base(share_obs, masks)
 
         if self._use_naive_recurrent_policy or self._use_recurrent_policy:
             critic_features, rnn_states = self.rnn(critic_features, rnn_states, masks)

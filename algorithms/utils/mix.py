@@ -174,10 +174,10 @@ class MIXBase(nn.Module):
             if self._agent_invariant and self.use_grid_pos_attn:
                 self.descon_again = self._build_invariant_descon_grid_pos_model(self.hidden_size, self._use_orthogonal, self._activation_id)
             
-    def forward(self, x, masks, frontier_graph_data, agent_graph_data):
+    def forward(self, x, masks):
         out_x = x
         if len(self.graph_keys) > 0:
-            out_x = self.graph(x, masks, frontier_graph_data, agent_graph_data)
+            out_x = self.graph(x, masks)
             return out_x
         
         if len(self.cnn_keys) > 0:

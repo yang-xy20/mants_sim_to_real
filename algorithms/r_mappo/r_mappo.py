@@ -95,7 +95,7 @@ class R_MAPPO():
 
         share_obs_batch, obs_batch, rnn_states_batch, rnn_states_critic_batch, actions_batch, \
         value_preds_batch, return_batch, masks_batch, active_masks_batch, old_action_log_probs_batch, \
-        adv_targ, available_actions_batch, available_actions_first_batch, available_actions_second_batch, rank_batch, frontier_graph_data_batch, agent_graph_data_batch = sample
+        adv_targ, available_actions_batch, available_actions_first_batch, available_actions_second_batch, rank_batch = sample
 
         old_action_log_probs_batch = check(old_action_log_probs_batch).to(**self.tpdv)
         adv_targ = check(adv_targ).to(**self.tpdv)
@@ -107,8 +107,6 @@ class R_MAPPO():
         # Reshape to do in a single forward pass for all steps
         values, action_log_probs, dist_entropy, policy_values = self.policy.evaluate_actions(share_obs_batch,
                                                                               obs_batch, 
-                                                                              frontier_graph_data_batch, 
-                                                                              agent_graph_data_batch,
                                                                               rnn_states_batch, 
                                                                               rnn_states_critic_batch, 
                                                                               actions_batch, 

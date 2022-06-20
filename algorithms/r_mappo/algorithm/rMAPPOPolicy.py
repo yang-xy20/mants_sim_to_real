@@ -27,20 +27,20 @@ class R_MAPPOPolicy:
         update_linear_schedule(self.actor_optimizer, episode, episodes, self.lr)
         update_linear_schedule(self.critic_optimizer, episode, episodes, self.critic_lr)
 
-    def get_actions(self, share_obs, obs, frontier_graph_data, agent_graph_data, rnn_states_actor, rnn_states_critic, masks, available_actions=None, available_actions_first=None, available_actions_second=None, deterministic=False, rank = None):
-        actions, action_log_probs, rnn_states_actor = self.actor(obs, frontier_graph_data, agent_graph_data, rnn_states_actor, masks, available_actions, available_actions_first, available_actions_second, deterministic)
-        values, rnn_states_critic = self.critic(share_obs, frontier_graph_data, agent_graph_data, rnn_states_critic, masks, rank = rank)
+    def get_actions(self, share_obs, obs, rnn_states_actor, rnn_states_critic, masks, available_actions=None, available_actions_first=None, available_actions_second=None, deterministic=False, rank = None):
+        actions, action_log_probs, rnn_states_actor = self.actor(obs, rnn_states_actor, masks, available_actions, available_actions_first, available_actions_second, deterministic)
+        values, rnn_states_critic = self.critic(share_obs, rnn_states_critic, masks, rank = rank)
         return values, actions, action_log_probs, rnn_states_actor, rnn_states_critic
 
-    def get_values(self, share_obs, frontier_graph_data, agent_graph_data, rnn_states_critic, masks, rank=None):
-        values, _ = self.critic(share_obs, frontier_graph_data, agent_graph_data, rnn_states_critic, masks, rank=rank)
+    def get_values(self, share_obs, rnn_states_critic, masks, rank=None):
+        values, _ = self.critic(share_obs, rnn_states_critic, masks, rank=rank)
         return values
 
-    def evaluate_actions(self, share_obs, obs, frontier_graph_data, agent_graph_data, rnn_states_actor, rnn_states_critic, action, masks, available_actions=None, available_actions_first=None, available_actions_second=None, active_masks=None, rank=None):
-        action_log_probs, dist_entropy, policy_values = self.actor.evaluate_actions(obs, frontier_graph_data, agent_graph_data, rnn_states_actor, action, masks, available_actions, available_actions_first, available_actions_second, active_masks)
-        values, _ = self.critic(share_obs, frontier_graph_data, agent_graph_data, rnn_states_critic, masks, rank=rank)
+    def evaluate_actions(self, share_obs, obs, rnn_states_actor, rnn_states_critic, action, masks, available_actions=None, available_actions_first=None, available_actions_second=None, active_masks=None, rank=None):
+        action_log_probs, dist_entropy, policy_values = self.actor.evaluate_actions(obs, rnn_states_actor, action, masks, available_actions, available_actions_first, available_actions_second, active_masks)
+        values, _ = self.critic(share_obs, rnn_states_critic, masks, rank=rank)
         return values, action_log_probs, dist_entropy, policy_values
 
-    def act(self, obs, frontier_graph_data, agent_graph_data, rnn_states_actor, masks, available_actions=None, available_actions_first=None, available_actions_second=None, deterministic=False):
-        actions, _, rnn_states_actor = self.actor(obs, frontier_graph_data, agent_graph_data, rnn_states_actor, masks, available_actions, available_actions_first, available_actions_second, deterministic)
+    def act(self, obs, rnn_states_actor, masks, available_actions=None, available_actions_first=None, available_actions_second=None, deterministic=False):
+        actions, _, rnn_states_actor = self.actor(obs, rnn_states_actor, masks, available_actions, available_actions_first, available_actions_second, deterministic)
         return actions, rnn_states_actor

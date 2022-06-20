@@ -133,7 +133,7 @@ class GraphHabitatEnv(MultiHabitatEnv):
                         new_node_idx = []
                         exec('new_node_idx.append(self.graph_agent_{}.num_node())'.format(agent_id))
                         exec('self.graph_agent_{}.add_node(new_node_idx[-1], b, world_position[b])'.format(agent_id))
-                        exec('self.graph_agent_{}.add_edge(new_node_idx[-1], self.graph_agent_{}.last_localized_node_idx[b])'.format(agent_id,agent_id))
+                        #exec('self.graph_agent_{}.add_edge(new_node_idx[-1], self.graph_agent_{}.last_localized_node_idx[b])'.format(agent_id,agent_id))
                         exec('self.graph_agent_{}.record_localized_state(new_node_idx[-1], b)'.format(agent_id))
                     else:
                         exec('self.graph_agent_{}.initialize_graph(b, world_position[b])'.format(agent_id))                  

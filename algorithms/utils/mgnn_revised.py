@@ -2,7 +2,6 @@ from asyncio import transports
 import torch
 from torch_geometric.nn import GCNConv
 import torch.nn.functional as F
-from torch_geometric.loader import DataLoader
 from .agent_attention import AttentionModule
 from torch_geometric.data import Batch
 import onpolicy
@@ -311,12 +310,12 @@ class Perception_Graph(torch.nn.Module):
         self.cuda = args.cuda
         self.use_double_matching = args.use_double_matching
         
-    def forward(self, observations, masks, frontier_graph_data_origin, agent_graph_data_origin): 
+    def forward(self, observations, masks): 
      
-        frontier_graph_data = copy.deepcopy(frontier_graph_data_origin)
-        last_frontier_data = copy.deepcopy(frontier_graph_data_origin)
-        agent_graph_data = copy.deepcopy(agent_graph_data_origin)
-        last_agent_data = copy.deepcopy(agent_graph_data_origin)
+        frontier_graph_data = []
+        agent_graph_data = []
+        last_frontier_data = []
+        last_agent_data = []
         if self.use_double_matching:
             node_graph_data = []
             last_node_data = []
@@ -365,10 +364,10 @@ class Perception_Graph(torch.nn.Module):
                 agent_pos_for_nodes.append(agent_position_for_node)
                 last_agent_pos_for_nodes.append(last_agent_for_node)
            
-            frontier_graph_data[i].x = ghost_node_position
-            agent_graph_data[i].x = agent_node_position
-            last_frontier_data[i].x = last_ghost_position
-            last_agent_data[i].x = last_agent_position
+            frontier_graph_data.append(ghost_node_position)
+            agent_graph_data.append(agent_node_position)
+            last_frontier_data.append(last_ghost_position)
+            last_agent_data.append(last_agent_position)
             
         if self.use_double_matching:
             all_node_edge = []
@@ -396,7 +395,7 @@ class Perception_Graph(torch.nn.Module):
                     transport_matrix[agent_id] = torch.sum(temp_m, dim=0)
             else:
                 transport_matrix = None
-            e = self.gnn(frontier_graph_data[i].x, agent_graph_data[i].x, last_agent_data[i].x , last_frontier_data[i].x, graph_agent_dis[i], invalid, transport_matrix)
+            e = self.gnn(frontier_graph_data[i], agent_graph_data[i], last_agent_data[i] , last_frontier_data[i], graph_agent_dis[i], invalid, transport_matrix)
         
             all_edge.append(e[0,0])
 
