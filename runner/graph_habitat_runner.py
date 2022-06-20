@@ -329,18 +329,24 @@ class GraphHabitatRunner(Runner):
         return global_goal_position
 
     @torch.no_grad()
-    def build_graph(self, pos, left_corner=None, ratio=None, explored_map=None, explored_map_no_obs=None, obstacle_map=None, update=False): 
+    def build_graph(self, pos, left_corner, ratio=None, explored_map=None, explored_map_no_obs=None, obstacle_map=None, update=False): 
         pos = np.array(pos) 
         self.pos = np.array(pos, np.float)
         self.pos[:,0] = (pos[:,0] + self.max_size[0]//2) * self.map_resolution/100.0
         self.pos[:,1] = (pos[:,1] + self.max_size[1]//2) * self.map_resolution/100.0
+        left_corner = np.array(left_corner)
+        self.corner = left_corner
+        self.corner[:,0] = left_corner[:,0]+self.max_size[0]//2
+        self.corner[:,1] = left_corner[:,1]+self.max_size[1]//2
         for e in range(self.n_rollout_threads):
             for agent_id in range(self.num_agents):
                 if self.use_all_ghost_add:
                     for ppos in range(self.valid_ghost_position.shape[0]):
-                        if self.valid_ghost_position[pos].sum() == 0:
+                        if self.valid_ghost_position[ppos].sum() == 0:
                             pass
                         else:
+                            # print("pu", pu.get_l2_distance(self.pos[agent_id,0] ,self.valid_ghost_position[ppos,0],self.pos[agent_id,1], self.valid_ghost_position[ppos,1]))
+                            # print(self.pos, self.valid_ghost_position)
                             if pu.get_l2_distance(self.pos[agent_id,0] ,self.valid_ghost_position[ppos,0],\
                             self.pos[agent_id,1], self.valid_ghost_position[ppos,1]) < 0.5 and \
                             self.add_ghost_flag[e, ppos] == False:
@@ -351,10 +357,6 @@ class GraphHabitatRunner(Runner):
             if update:
                 env_infos['update'] = True
                 env_infos['add_node'] = self.add_node[0]
-                left_corner = np.array(left_corner)
-                self.corner = left_corner
-                self.corner[:,0] = left_corner[:,0]+self.max_size[0]//2
-                self.corner[:,1] = left_corner[:,1]+self.max_size[1]//2
                 infos, reward = self.envs.update_merge_step_graph(env_infos,self.pos, self.max_size, self.corner, ratio, obstacle_map,explored_map_no_obs, explored_map)
             else:
                 env_infos['update'] = False

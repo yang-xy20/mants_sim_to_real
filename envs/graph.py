@@ -217,15 +217,15 @@ class Graph(object):
         merge_explored_in[left_corner[0]:left_corner[0]+explored_in_shape[0],left_corner[1]:left_corner[1]+explored_in_shape[1]] = explored_in
         merge_explored_all[left_corner[0]:left_corner[0]+explored_all_shape[0],left_corner[1]:left_corner[1]+explored_all_shape[1]] = explored_all
        
-        #ratio = np.array(ratio)
-        # if len(self.node_position_list) == self.num_init_nodes:
-        #     pass
-        # elif np.any(ratio < 0.3) and (not self.flag_reset):
-        #     self.last_ghost_mask = self.ghost_mask[:self.num_init_nodes].copy()
-        #     self.ghost_mask[:self.num_init_nodes,:] = 0
-        #     self.flag_reset = True
-        # elif np.all(ratio >= 0.3) and self.flag_reset:
-        #     self.ghost_mask[:self.num_init_nodes] = self.last_ghost_mask
+        ratio = np.array(ratio)
+        if len(self.node_position_list) == self.num_init_nodes:
+            pass
+        elif np.any(ratio < 0.3) and (not self.flag_reset):
+            self.last_ghost_mask = self.ghost_mask[:self.num_init_nodes].copy()
+            self.ghost_mask[:self.num_init_nodes,:] = 0
+            self.flag_reset = True
+        elif np.all(ratio >= 0.3) and self.flag_reset:
+            self.ghost_mask[:self.num_init_nodes] = self.last_ghost_mask
 
         #ghost_link = self.ghost_node_link
         ghost_pos = self.ghost_node_position
@@ -248,38 +248,37 @@ class Graph(object):
                     if abs(step_x) > abs(step_y):
                         for i in range(0,abs(dx)+1):
                             tempx, tempy = round(xx+i*step_x), round(yy+i*step_y)
-                            # if merge_explored_in[tempx, tempy-1] > 0.5 and merge_explored_in[tempx, tempy] > 0.5 and merge_explored_in[tempx, tempy+1] > 0.5 and \
-                            # merge_explored_in[round(tempx+1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy+1)] > 0.5 and \
-                            # merge_explored_in[round(tempx-1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy+1)] > 0.5:
-                            #     break
-                            # el
-                            if merge_map_in[tempx, tempy] > 0:
+                            if merge_explored_in[tempx, tempy-1] > 0.5 and merge_explored_in[tempx, tempy] > 0.5 and merge_explored_in[tempx, tempy+1] > 0.5 and \
+                            merge_explored_in[round(tempx+1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy+1)] > 0.5 and \
+                            merge_explored_in[round(tempx-1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy+1)] > 0.5:
+                                break
+                            elif merge_map_in[tempx, tempy] > 0:
                                 self.ghost_mask[idx,idy] = 0
-                                # count = 0
-                                # for j in range(i+1,abs(dx)+1):
-                                #     if merge_explored_all[round(xx+j*step_x)-1:round(xx+j*step_x)+2, round(yy+j*step_y)-1:round(yy+j*step_y)+2].sum()>4:
-                                #         count += 1
-                                #     if count > 0.6*(abs(dx)-i):
-                                #         self.ghost_mask[idx,idy] = 0
-                                #         break
+                                count = 0
+                                for j in range(i+1,abs(dx)+1):
+                                    if merge_explored_all[round(xx+j*step_x)-1:round(xx+j*step_x)+2, round(yy+j*step_y)-1:round(yy+j*step_y)+2].sum()>4:
+                                        count += 1
+                                    if count > 0.6*(abs(dx)-i):
+                                        self.ghost_mask[idx,idy] = 0
+                                        break
                                 break
                     else:
                         for i in range(0,abs(dy)+1):
                             tempx, tempy = round(xx+i*step_x), round(yy+i*step_y)
-                            # if merge_explored_in[tempx, tempy-1] > 0.5 and merge_explored_in[tempx, tempy] > 0.5 and merge_explored_in[tempx, tempy+1] > 0.5 and \
-                            # merge_explored_in[round(tempx+1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy+1)] > 0.5 and \
-                            # merge_explored_in[round(tempx-1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy+1)] > 0.5:
-                            #     break
-                            # el
-                            if merge_map_in[tempx, tempy] > 0:
-                                self.ghost_mask[idx,idy] = 0
-                                # count = 0
-                                # for j in range(i+1,abs(dy)+1):
-                                #     if merge_explored_all[round(xx+j*step_x)-1:round(xx+j*step_x)+2, round(yy+j*step_y)-1:round(yy+j*step_y)+2].sum()>4:
-                                #         count += 1
-                                #     if count > 0.6*(abs(dy)-i):
-                                #         self.ghost_mask[idx,idy] = 0
-                                #         break
+                            if merge_explored_in[tempx, tempy-1] > 0.5 and merge_explored_in[tempx, tempy] > 0.5 and merge_explored_in[tempx, tempy+1] > 0.5 and \
+                            merge_explored_in[round(tempx+1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy)] > 0.5 and merge_explored_in[round(tempx+1), round(tempy+1)] > 0.5 and \
+                            merge_explored_in[round(tempx-1), round(tempy-1)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy)] > 0.5 and merge_explored_in[round(tempx-1), round(tempy+1)] > 0.5:
                                 break
+                            elif merge_map_in[tempx, tempy] > 0:
+                                self.ghost_mask[idx,idy] = 0
+                                count = 0
+                                for j in range(i+1,abs(dy)+1):
+                                    if merge_explored_all[round(xx+j*step_x)-1:round(xx+j*step_x)+2, round(yy+j*step_y)-1:round(yy+j*step_y)+2].sum()>4:
+                                        count += 1
+                                    if count > 0.6*(abs(dy)-i):
+                                        self.ghost_mask[idx,idy] = 0
+                                        break
+                                break
+
     def merge_ghost_nodes(self, ghost_mask):
         self.ghost_mask *= ghost_mask
