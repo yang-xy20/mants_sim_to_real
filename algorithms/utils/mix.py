@@ -14,8 +14,6 @@ from mants_sim_to_real.algorithms.utils.vit import ViT, Attention, PreNorm, Tran
 from mants_sim_to_real.algorithms.utils.invariant import Invariant, AgentEncoder, AlterEncoder
 from einops.layers.torch import Rearrange
 from einops import rearrange, repeat
-from mants_sim_to_real.algorithms.utils.VGM import VGMNet
-from .mgnn_batch import Batch_Perception_Graph
 from .mgnn_revised import Perception_Graph
 
 class Flatten(nn.Module):
@@ -754,11 +752,10 @@ class MIXBase(nn.Module):
 
     def _build_graph_model(self, observation_space, action_space, args, rnn_type="LSTM", backbone='resnet18', \
         resnet_baseplanes=32, normalize_visual_inputs=True):
-        if self.use_batch_train:
-            return Batch_Perception_Graph(args, self.graph_linear)
-        else:
-            return Perception_Graph(args, self.graph_linear)
-        #VGMNet(observation_space, action_space, args, rnn_type, backbone, resnet_baseplanes, normalize_visual_inputs, self.graph_linear)
+        # if self.use_batch_train:
+        #     return Batch_Perception_Graph(args, self.graph_linear)
+        # else:
+        return Perception_Graph(args, self.graph_linear)
         
     def _build_mlp_model(self, obs_shape, hidden_size, use_orthogonal, activation_id):
 
