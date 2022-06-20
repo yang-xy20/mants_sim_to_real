@@ -1,9 +1,6 @@
 import torch
 from torch_geometric.nn import GCNConv
 import torch.nn.functional as F
-from torch_geometric.loader import DataLoader
-from .agent_attention import AttentionModule
-from torch_geometric.data import Batch
 from .graph_layer import GraphConvolution
 import onpolicy
 from onpolicy.envs.habitat.model.PCL.resnet_pcl import resnet18
