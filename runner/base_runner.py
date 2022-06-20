@@ -4,11 +4,8 @@ import os
 import numpy as np
 from itertools import chain
 import torch
-from tensorboardX import SummaryWriter
-from onpolicy.utils.shared_buffer import SharedReplayBuffer
-from onpolicy.utils.util import update_linear_schedule
-import gym
-import copy
+import sys
+sys.path.append("../..")
 
 def _t2n(x):
     return x.detach().cpu().numpy()
@@ -30,8 +27,8 @@ class Runner(object):
         self.model_dir = self.all_args.model_dir
         self.hidden_size = self.all_args.hidden_size
         
-        from onpolicy.sim_to_real.algorithms.r_mappo.r_mappo import R_MAPPO as TrainAlgo
-        from onpolicy.sim_to_real.algorithms.r_mappo.algorithm.rMAPPOPolicy import R_MAPPOPolicy as Policy
+        from mants_sim_to_real.algorithms.r_mappo.r_mappo import R_MAPPO as TrainAlgo
+        from mants_sim_to_real.algorithms.r_mappo.algorithm.rMAPPOPolicy import R_MAPPOPolicy as Policy
 
         
         share_observation_space = self.envs.observation_space[0]

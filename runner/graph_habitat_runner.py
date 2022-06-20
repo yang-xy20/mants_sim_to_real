@@ -15,14 +15,13 @@ import torch.nn as nn
 import copy
 import json
 from .base_runner import Runner
-
-from icecream import ic
+import sys
+sys.path.append("../..")
 import joblib
-import onpolicy
 
 from torch_geometric.data import Data
-from onpolicy.sim_to_real.utils import pose as pu
-from onpolicy.sim_to_real.utils import visualization as vu
+from mants_sim_to_real.utils import pose as pu
+from mants_sim_to_real.utils import visualization as vu
 
 def _t2n(x):
     return x.detach().cpu().numpy()
