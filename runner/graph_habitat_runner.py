@@ -20,7 +20,6 @@ from icecream import ic
 import joblib
 import onpolicy
 
-from torch_geometric.data import Data
 from onpolicy.sim_to_real.utils import pose as pu
 from onpolicy.sim_to_real.utils import visualization as vu
 
@@ -215,22 +214,9 @@ class GraphHabitatRunner(Runner):
         concat_obs = {}
         for key in self.global_input.keys():
             concat_obs[key] = np.concatenate(self.global_input[key])
-        frontier_graph_data=[]
-        agent_graph_data=[]
-        if self.use_mgnn:
-            for e in range(self.n_rollout_threads):
-                for _ in range(self.num_agents):
-                    frontier_x= torch.zeros((self.num_agents, 1))#torch.tensor(concat_obs['graph_merge_ghost_feature'][e*self.num_agents][concat_obs['graph_merge_ghost_mask'][e*self.num_agents]!=0],dtype=torch.float).to(torch.device("cuda:0"))
-                    total_sum=self.num_agents#int(concat_obs['graph_merge_ghost_mask'][e*self.num_agents].sum())               
-                    frontier_edge_index = torch.stack((torch.tensor([i for i in range(total_sum)],dtype=torch.long).repeat(total_sum,1).t().reshape(-1),torch.tensor([i for i in range(total_sum)],dtype=torch.long).repeat(total_sum)) ).to(torch.device("cuda:0"))
-                    frontier_graph_data.append(Data(x=frontier_x, edge_index=frontier_edge_index))   
-                    agent_x = torch.zeros((self.num_agents, 1))#torch.tensor(concat_obs['graph_curr_vis_embedding'][e*self.num_agents],dtype=torch.float).to(torch.device("cuda:0"))
-                    agent_edge_index = torch.stack((torch.tensor([i for i in range(self.num_agents)],dtype=torch.long).repeat(self.num_agents,1).t().reshape(-1),torch.tensor([i for i in range(self.num_agents)],dtype=torch.long).repeat(self.num_agents)) ).to(torch.device("cuda:0"))
-                    agent_graph_data.append(Data(x=agent_x, edge_index=agent_edge_index))     
+        
 
         actions, rnn_states = self.trainer.policy.act(concat_obs,
-                                    frontier_graph_data,
-                                    agent_graph_data,
                                     np.concatenate(rnn_states),
                                     np.concatenate(self.global_masks),
                                     available_actions = None,
