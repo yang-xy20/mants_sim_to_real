@@ -103,6 +103,7 @@ class GraphHabitatRunner(Runner):
                     agent_world_pos[:,0] = agent_world_pos[:,0]/(self.max_size[0]*(self.map_resolution/100))
                     agent_world_pos[:,1] = agent_world_pos[:,1]/(self.max_size[1]*(self.map_resolution/100))
                     #import pdb;pdb.set_trace()
+                    print("agent_world_pos", agent_world_pos)
                     agent_world_pos = np.concatenate((agent_world_pos, np.zeros((self.num_agents,1)),np.ones((self.num_agents,1))), axis = -1)
                     for a in range(self.num_agents):
                         self.global_input[key][e, a] = np.roll(agent_world_pos, a, axis=0)
@@ -166,6 +167,7 @@ class GraphHabitatRunner(Runner):
                         ghost_world_pos[:,:,0] = ghost_world_pos[:,:,0]/(self.max_size[0]*(self.map_resolution/100))
                         ghost_world_pos[:,:,1] = ghost_world_pos[:,:,1]/(self.max_size[1]*(self.map_resolution/100))
                         #import pdb;pdb.set_trace()
+                        print("ghost_world_pos", ghost_world_pos)
                         ghost_world_pos = np.concatenate((ghost_world_pos, np.zeros((self.graph_memory_size,self.ghost_node_size,1)), np.ones((self.graph_memory_size,self.ghost_node_size,1))), axis = -1)
                         self.global_input[key][e, iter_] = ghost_world_pos.copy()
             elif key == 'graph_last_ghost_node_position':
@@ -173,10 +175,11 @@ class GraphHabitatRunner(Runner):
                     self.global_input[key][:, :, global_step*self.num_agents:(global_step+1)*self.num_agents,2] = 1
                 else:
                     for e in range(self.n_rollout_threads):
-                        ghost_world_pos = self.global_goal_position.copy()
+                        ghost_world_pos = self.global_goal_position.copy().astype(float)
                         ghost_world_pos[:,0] = ghost_world_pos[:,0]/self.max_size[0]
                         ghost_world_pos[:,1] = ghost_world_pos[:,1]/self.max_size[1]
                         #import pdb;pdb.set_trace()
+                        print("last_ghost_node_pos", ghost_world_pos)
                         ghost_world_pos = np.concatenate((ghost_world_pos,\
                         np.ones((self.num_agents,1)), np.zeros((self.num_agents,1))), axis=-1)
                         for a in range(self.num_agents):
@@ -193,9 +196,10 @@ class GraphHabitatRunner(Runner):
                             self.global_input[key][e, a, global_step*self.num_agents:(global_step+1)*self.num_agents] = np.roll(agent_world_pos, a, axis=0)
                 else:
                     last_agent_world_pos = self.last_agent_world_pos[:, (global_step-1)*self.num_agents:global_step*self.num_agents].copy()
-                    last_agent_world_pos[:,:,0] = last_agent_world_pos[:,:,0]//(self.max_size[0]*(self.map_resolution/100))
-                    last_agent_world_pos[:,:,1] = last_agent_world_pos[:,:,1]//(self.max_size[1]*(self.map_resolution/100))
+                    last_agent_world_pos[:,:,0] = last_agent_world_pos[:,:,0]/(self.max_size[0]*(self.map_resolution/100))
+                    last_agent_world_pos[:,:,1] = last_agent_world_pos[:,:,1]/(self.max_size[1]*(self.map_resolution/100))
                     #import pdb;pdb.set_trace()
+                    print("last_agent_world_pos", last_agent_world_pos)
                     last_agent_world_pos = np.concatenate((last_agent_world_pos,np.ones((self.n_rollout_threads,self.num_agents,1)),np.zeros((self.n_rollout_threads,self.num_agents,1))),axis = -1)
                     for a in range(self.num_agents):
                         self.global_input[key][:, a, (global_step-1)*self.num_agents:global_step*self.num_agents] = np.roll(last_agent_world_pos, a, axis=1)
