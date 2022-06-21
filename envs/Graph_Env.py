@@ -283,6 +283,6 @@ class GraphHabitatEnv(MultiHabitatEnv):
                     if reachable[all_goal[h][0], all_goal[h][1]] == reachable.max():
                         distance[i, all_index[h]] = -1
                     else:
-                        distance[i, all_index[h]] = reachable[all_goal[h][0], all_goal[h][1]]/500 #reachable.max()
+                        distance[i, all_index[h]] = reachable[all_goal[h][0], all_goal[h][1]]/600 #reachable.max()
         return distance
         
