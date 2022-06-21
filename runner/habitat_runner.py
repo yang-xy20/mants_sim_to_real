@@ -1,5 +1,4 @@
 import time
-import wandb
 import os
 import gym
 import numpy as np
@@ -21,7 +20,6 @@ import json
 from .base_runner import Runner
 from mants_sim_to_real.utils.frontier import get_closest_frontier, get_frontier, nearest_frontier, max_utility_frontier, bfs_distance, rrt_global_plan, l2distance, voronoi_based_planning
 from mants_sim_to_real.algorithms.utils.util import init, check
-from icecream import ic
 import joblib
 from mants_sim_to_real.utils import visualization as vu
 
