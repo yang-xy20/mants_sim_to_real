@@ -165,7 +165,7 @@ if __name__ == "__main__":
     max_size = np.array((420,560))
     
     step = 0
-    global_goal_position = runner.init_reset(pos, max_size, obstacle_map,left_corner)#init_graph_runner
+    global_goal_position = runner.init_reset(pos, max_size, obstacle_map, left_corner)#init_graph_runner
     while step < 100:
         global_step = step // num_local_steps
         pos, ratio, explored_map, explored_map_no_obs, obstacle_map, left_corner= fake_sim.step(global_goal_position)#zzl 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
             
         else: 
             update = False
-            infos = runner.build_graph(pos, update = update)#build_graph
+            infos = runner.build_graph(pos, left_corner, update = update)#build_graph
         if step % num_local_steps == num_local_steps-1:
             global_goal_position = runner.get_global_goal(obstacle_map, global_step, infos)#global_goal
         runner.render(obstacle_map, explored_map, pos, './test/figures')

@@ -102,7 +102,7 @@ class GraphHabitatRunner(Runner):
                     agent_world_pos = self.pos.copy()
                     agent_world_pos[:,0] = agent_world_pos[:,0]/(self.max_size[0]*(self.map_resolution/100))
                     agent_world_pos[:,1] = agent_world_pos[:,1]/(self.max_size[1]*(self.map_resolution/100))
-                    
+                    #import pdb;pdb.set_trace()
                     agent_world_pos = np.concatenate((agent_world_pos, np.zeros((self.num_agents,1)),np.ones((self.num_agents,1))), axis = -1)
                     for a in range(self.num_agents):
                         self.global_input[key][e, a] = np.roll(agent_world_pos, a, axis=0)
@@ -117,8 +117,9 @@ class GraphHabitatRunner(Runner):
                     for e in range(self.n_rollout_threads):
                         position['x'] = self.pos.copy()
                         position['y'] = infos['graph_ghost_node_position'].copy()
-                        position['obstacle_map'] = self.obstacle_map[iter_]
-                        position['corner'] = self.corner[iter_]
+                        #import pdb;pdb.set_trace()
+                        position['obstacle_map'] = self.obstacle_map
+                        position['corner'] = self.corner
                     fmm_dis = self.compute_fmm_distance(position)
                     self.global_input[key][:,iter_] = np.roll(fmm_dis, iter_, axis=1)
             elif key == 'graph_agent_mask':
@@ -130,6 +131,7 @@ class GraphHabitatRunner(Runner):
                     world_node_pos[:,0] = world_node_pos[:,0]/(self.max_size[0]*(self.map_resolution/100))
                     world_node_pos[:,1] = world_node_pos[:,1]/(self.max_size[1]*(self.map_resolution/100))
                     world_node_pos[:,2] = 0
+                    #import pdb;pdb.set_trace()
                     world_node_pos = np.concatenate((world_node_pos, np.ones((world_node_pos.shape[0],1))), axis = -1)
                     for agent_id in range(self.num_agents):
                         self.global_input[key][e, agent_id, :len(infos['graph_node_pos'])] = world_node_pos.copy()
@@ -140,8 +142,8 @@ class GraphHabitatRunner(Runner):
                         position['x'] = self.pos.copy()
                         count = len(infos['graph_node_pos'])
                         position['y'] = np.concatenate((np.array(infos['graph_node_pos']).copy(),np.zeros((self.graph_memory_size-count,3))),axis=0)
-                        position['obstacle_map']  = self.obstacle_map[agent_id]
-                        position['corner']  = self.corner[agent_id]
+                        position['obstacle_map']  = self.obstacle_map
+                        position['corner']  = self.corner
                     fmm_dis = self.compute_fmm_distance(position)
                     self.global_input[key][:,agent_id] = np.roll(fmm_dis, agent_id, axis=1)
             elif key == 'graph_last_node_position':
@@ -163,6 +165,7 @@ class GraphHabitatRunner(Runner):
                         ghost_world_pos = infos[key].copy()
                         ghost_world_pos[:,:,0] = ghost_world_pos[:,:,0]/(self.max_size[0]*(self.map_resolution/100))
                         ghost_world_pos[:,:,1] = ghost_world_pos[:,:,1]/(self.max_size[1]*(self.map_resolution/100))
+                        #import pdb;pdb.set_trace()
                         ghost_world_pos = np.concatenate((ghost_world_pos, np.zeros((self.graph_memory_size,self.ghost_node_size,1)), np.ones((self.graph_memory_size,self.ghost_node_size,1))), axis = -1)
                         self.global_input[key][e, iter_] = ghost_world_pos.copy()
             elif key == 'graph_last_ghost_node_position':
@@ -173,6 +176,7 @@ class GraphHabitatRunner(Runner):
                         ghost_world_pos = self.global_goal_position.copy()
                         ghost_world_pos[:,0] = ghost_world_pos[:,0]/self.max_size[0]
                         ghost_world_pos[:,1] = ghost_world_pos[:,1]/self.max_size[1]
+                        #import pdb;pdb.set_trace()
                         ghost_world_pos = np.concatenate((ghost_world_pos,\
                         np.ones((self.num_agents,1)), np.zeros((self.num_agents,1))), axis=-1)
                         for a in range(self.num_agents):
@@ -183,7 +187,7 @@ class GraphHabitatRunner(Runner):
                         agent_world_pos = self.pos.copy()
                         agent_world_pos[:,0] = agent_world_pos[:,0]/(self.max_size[0]*(self.map_resolution/100))
                         agent_world_pos[:,1] = agent_world_pos[:,1] /(self.max_size[1]*(self.map_resolution/100))
-                   
+                        #import pdb;pdb.set_trace()
                         agent_world_pos = np.concatenate((agent_world_pos,np.ones((self.num_agents,1)),np.zeros((self.num_agents,1))), axis = -1)
                         for a in range(self.num_agents):
                             self.global_input[key][e, a, global_step*self.num_agents:(global_step+1)*self.num_agents] = np.roll(agent_world_pos, a, axis=0)
@@ -191,7 +195,7 @@ class GraphHabitatRunner(Runner):
                     last_agent_world_pos = self.last_agent_world_pos[:, (global_step-1)*self.num_agents:global_step*self.num_agents].copy()
                     last_agent_world_pos[:,:,0] = last_agent_world_pos[:,:,0]//(self.max_size[0]*(self.map_resolution/100))
                     last_agent_world_pos[:,:,1] = last_agent_world_pos[:,:,1]//(self.max_size[1]*(self.map_resolution/100))
-                   
+                    #import pdb;pdb.set_trace()
                     last_agent_world_pos = np.concatenate((last_agent_world_pos,np.ones((self.n_rollout_threads,self.num_agents,1)),np.zeros((self.n_rollout_threads,self.num_agents,1))),axis = -1)
                     for a in range(self.num_agents):
                         self.global_input[key][:, a, (global_step-1)*self.num_agents:global_step*self.num_agents] = np.roll(last_agent_world_pos, a, axis=1)
