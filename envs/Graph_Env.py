@@ -18,6 +18,8 @@ import random
 import time
 from collections import deque
 from mants_sim_to_real.utils.fmm_planner import FMMPlanner
+import skimage.morphology
+
 class GraphHabitatEnv(MultiHabitatEnv):
     def __init__(self, args, run_dir):
         self.num_agents = args.num_agents 
@@ -253,8 +255,13 @@ class GraphHabitatEnv(MultiHabitatEnv):
             r, c = start_origin[i][0], start_origin[i][1]
             start = [int(r * 100.0/self.map_resolution),
                         int(c * 100.0/self.map_resolution)]
+            
+            for w in range(all_merge_obstacle_map.shape[0]):
+                for h in range(all_merge_obstacle_map.shape[1]):
+                    if all_merge_obstacle_map[w,h]>0:
+                        all_merge_obstacle_map[w-2:w+3,h-2:h+3] = all_merge_obstacle_map[w,h]
 
-            traversible = skimage.morphology.binary_dilation(np.rint(all_merge_obstacle_map), 1) != True 
+            traversible = np.rint(all_merge_obstacle_map) != True 
            
             #traversible = np.rint(all_merge_obstacle_map)!= True 
        
@@ -283,6 +290,6 @@ class GraphHabitatEnv(MultiHabitatEnv):
                     if reachable[all_goal[h][0], all_goal[h][1]] == reachable.max():
                         distance[i, all_index[h]] = -1
                     else:
-                        distance[i, all_index[h]] = reachable[all_goal[h][0], all_goal[h][1]]/600 #reachable.max()
+                        distance[i, all_index[h]] = reachable[all_goal[h][0], all_goal[h][1]]/500 #reachable.max()
         return distance
         
