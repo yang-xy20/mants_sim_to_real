@@ -1,5 +1,4 @@
 import time
-import wandb
 import os
 import gym
 import numpy as np
@@ -21,7 +20,6 @@ import json
 from .base_runner import Runner
 #from mants_sim_to_real.envs.habitat.utils.frontier import get_closest_frontier, get_frontier, nearest_frontier, max_utility_frontier, bfs_distance, rrt_global_plan, l2distance, voronoi_based_planning
 from mants_sim_to_real.algorithms.utils.util import init, check
-from icecream import ic
 import joblib
 from mants_sim_to_real.utils import visualization as vu
 
@@ -506,8 +504,8 @@ class HabitatRunner(Runner):
         self.left_corner = np.array(left_corner)
         self.left_corner[:,0] = self.left_corner[:,0]+map_size[0]//2
         self.left_corner[:,1] = self.left_corner[:,1]+map_size[1]//2
-        self.obstacle_map = np.array(obstacle_map)
-        self.explored_map = np.array(explored_map)
+        self.obstacle_map = obstacle_map
+        self.explored_map = explored_map
         self.all_obstacle_map = np.zeros((self.map_size[0],self.map_size[1]))
         self.all_explored_map = np.zeros((self.map_size[0],self.map_size[1]))
         for agent_id in range(self.num_agents):
@@ -549,8 +547,8 @@ class HabitatRunner(Runner):
         self.left_corner = np.array(left_corner)
         self.left_corner[:,0] = self.left_corner[:,0]+self.map_size[0]//2
         self.left_corner[:,1] = self.left_corner[:,1]+self.map_size[1]//2
-        self.obstacle_map = np.array(obstacle_map)
-        self.explored_map = np.array(explored_map)
+        self.obstacle_map = obstacle_map
+        self.explored_map = explored_map
         self.all_obstacle_map = np.zeros((self.map_size[0],self.map_size[1]))
         self.all_explored_map = np.zeros((self.map_size[0],self.map_size[1]))
         for agent_id in range(self.num_agents):
