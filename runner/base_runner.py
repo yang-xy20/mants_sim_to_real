@@ -30,22 +30,18 @@ class Runner(object):
         from mants_sim_to_real.algorithms.r_mappo.r_mappo import R_MAPPO as TrainAlgo
         from mants_sim_to_real.algorithms.r_mappo.algorithm.rMAPPOPolicy import R_MAPPOPolicy as Policy
 
-        
-        share_observation_space = self.envs.observation_space[0]
-
-       
-        # policy network
-        self.policy = Policy(self.all_args,
-                            self.envs.observation_space[0],
-                            share_observation_space,
-                            self.envs.action_space[0],
-                            device = self.device)
-
-        if self.model_dir is not None:
-            self.restore()
-
-        # algorithm
-        self.trainer = TrainAlgo(self.all_args, self.policy, device = self.device)
+        if not self.all_args.use_vo:
+            share_observation_space = self.envs.observation_space[0]
+            # policy network
+            self.policy = Policy(self.all_args,
+                                self.envs.observation_space[0],
+                                share_observation_space,
+                                self.envs.action_space[0],
+                                device = self.device)
+            if self.model_dir is not None:
+                self.restore()
+            # algorithm
+            self.trainer = TrainAlgo(self.all_args, self.policy, device = self.device)
         
     def restore(self):
         policy_actor_state_dict = torch.load(str(self.model_dir) + '/actor.pt', map_location=self.device)

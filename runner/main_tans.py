@@ -79,7 +79,13 @@ def parse_args(args, parser):
     parser.add_argument('--action_mask', default=False, action='store_true')
     parser.add_argument('--matching_type', type=str)
     parser.add_argument('--graph_memory_size', default=100, type=int)
-                        
+    parser.add_argument('--use_tans', default=False, action='store_true')
+    parser.add_argument('--use_vo', default=False, action='store_true')
+    parser.add_argument('--ft_use_random', default = False, action='store_true')
+    parser.add_argument('--ft_clear_radius',type=float, default = 50)
+    parser.add_argument('--ft_cluster_radius', type=float, default = 5.0)
+    parser.add_argument('--utility_radius', type = int, default = 30)
+    
     # image retrieval
     all_args = parser.parse_known_args(args)[0]
 

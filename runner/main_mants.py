@@ -78,6 +78,10 @@ def parse_args(args, parser):
     parser.add_argument('--attn_depth', default=2, type=int)
     parser.add_argument('--grid_size', default=8, type=int)
     parser.add_argument('--action_mask', default=False, action='store_true')
+    parser.add_argument('--use_tans', default=False, action='store_true')
+    parser.add_argument('--use_vo', default=False, action='store_true')
+    parser.add_argument('--ft_use_random', default = False, action='store_true')
+    parser.add_argument('--ft_clear_radius',type=float, default = 50)
 
 
     # image retrieval

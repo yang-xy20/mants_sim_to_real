@@ -7,7 +7,7 @@ import torch.nn.functional as F
 import sys
 sys.path.append("../..")
 
-from mants_sim_to_real.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
+from onpolicy.mants_sim_to_real.algorithms.utils.vit import ViT, Attention, PreNorm, Transformer, CrossAttention, FeedForward
 from einops.layers.torch import Rearrange
 from einops import rearrange, repeat
 import random

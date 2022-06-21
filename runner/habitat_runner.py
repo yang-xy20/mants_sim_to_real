@@ -19,7 +19,7 @@ import copy
 import json
 
 from .base_runner import Runner
-#from mants_sim_to_real.envs.habitat.utils.frontier import get_closest_frontier, get_frontier, nearest_frontier, max_utility_frontier, bfs_distance, rrt_global_plan, l2distance, voronoi_based_planning
+from mants_sim_to_real.utils.frontier import get_closest_frontier, get_frontier, nearest_frontier, max_utility_frontier, bfs_distance, rrt_global_plan, l2distance, voronoi_based_planning
 from mants_sim_to_real.algorithms.utils.util import init, check
 from icecream import ic
 import joblib
@@ -61,23 +61,14 @@ class HabitatRunner(Runner):
         self.grid_last_goal = self.all_args.grid_last_goal
         self.grid_size = self.all_args.grid_size
         self.use_single = self.all_args.use_single
+        self.use_vo = self.all_args.use_vo
+        self.use_tans = self.all_args.use_tans
         self.figure_m, self.ax_m = plt.subplots(1, 1, figsize=(6,6),facecolor="white",num="Scene {} Merge Map".format(0))
         self.time_step = 0
         
     def init_map_variables(self):
         # each agent rotation
         self.full_w, self.full_h = 240,240
-
-        # ft
-        self.ft_merge_map = np.zeros((self.n_rollout_threads, 2, self.full_w, self.full_h), dtype = np.float32) # only explored and obstacle
-        self.ft_goals = np.zeros((self.n_rollout_threads, self.num_agents, 2), dtype = np.int32)
-        self.ft_pre_goals = np.zeros((self.n_rollout_threads, self.num_agents, 2), dtype = np.int32)
-        self.ft_last_merge_explored_ratio = np.zeros((self.n_rollout_threads, 1), dtype= np.float32)
-        self.ft_mask = np.ones((self.full_w, self.full_h), dtype=np.int32)
-        self.ft_go_steps = np.zeros((self.n_rollout_threads, self.num_agents, 1), dtype= np.int32)
-        self.ft_map = [None for _ in range(self.n_rollout_threads)]
-        self.ft_lx = [None for _ in range(self.n_rollout_threads)]
-        self.ft_ly = [None for _ in range(self.n_rollout_threads)]
                
     
     
@@ -331,7 +322,11 @@ class HabitatRunner(Runner):
         return rnn_states
     
     def ft_compute_global_goal(self, e):
-        locations = self.update_ft_merge_map(e)
+        self.ft_merge_map[e] = np.zeros((2, self.map_size[0], self.map_size[1]), dtype = np.float32)
+        self.ft_merge_map[e,0] = self.all_obstacle_map
+        self.ft_merge_map[e,1] = self.all_explored_map
+
+        locations = self.pos.copy()
         
         inputs = {
             'map_pred' : self.ft_merge_map[e,0],
@@ -341,12 +336,11 @@ class HabitatRunner(Runner):
         goal_mask = [self.ft_go_steps[e][agent_id]<15 for agent_id in range(self.num_agents)]
 
         num_choose = self.num_agents - sum(goal_mask)
-        self.env_info['merge_global_goal_num'] += num_choose
-
+        
         goals = self.ft_get_goal(inputs, goal_mask, pre_goals = self.ft_pre_goals[e], e=e)
 
         for agent_id in range(self.num_agents):
-            if not goal_mask[agent_id] or 'utility' in self.all_args.algorithm_name:
+            if not goal_mask[agent_id]:
                 self.ft_pre_goals[e][agent_id] = np.array(goals[agent_id], dtype=np.int32) # goals before rotation
 
         self.ft_goals[e]=self.rot_ft_goals(e, goals, goal_mask)
@@ -360,64 +354,11 @@ class HabitatRunner(Runner):
                 ft_goals[agent_id] = self.ft_goals[e][agent_id]
                 continue
             self.ft_go_steps[e][agent_id] = 0
-            output = np.zeros((1, 1, self.full_w, self.full_h), dtype =np.float32)
-            output[0, 0, goals[agent_id][0]-1 : goals[agent_id][0]+2, goals[agent_id][1]-1:goals[agent_id][1]+2] = 1
-            agent_n_trans = F.grid_sample(torch.from_numpy(output).float(), self.agent_trans[e][agent_id].float(), align_corners = True)
-            map = F.grid_sample(agent_n_trans.float(), self.agent_rotation[e][agent_id].float(), align_corners = True)[0, 0, :, :].numpy()
-
-            (index_a, index_b) = np.unravel_index(np.argmax(map[ :, :], axis=None), map[ :, :].shape) # might be wrong!!
-            ft_goals[agent_id] = np.array([index_a, index_b], dtype = np.float32)
+            ft_goals = goals
         return ft_goals
     
     def compute_merge_map_boundary(self, e, a, ft = True):
         return 0, self.full_w, 0, self.full_h
-
-    def ft_compute_local_input(self):
-        self.local_input = []
-
-        for e in range(self.n_rollout_threads):
-            p_input = defaultdict(list)
-            for a in range(self.num_agents):
-                lx, rx, ly, ry = self.compute_merge_map_boundary(e, a)
-                p_input['goal'].append([int(self.ft_goals[e, a][0])-lx, int(self.ft_goals[e,a][1])-ly])
-                if self.use_local_single_map:
-                    if self.use_gt_map:
-                        p_input['map_pred'].append(self.gt_full_map[e, a, 0, :, :].copy())
-                        p_input['exp_pred'].append(self.gt_full_map[e, a, 1, :, :].copy())
-                    else:
-                        p_input['map_pred'].append(self.full_map[e, a, 0, :, :].copy())
-                        p_input['exp_pred'].append(self.full_map[e, a, 1, :, :].copy())
-                else:
-                    trans_map = self.rot_map(self.merge_map[e, a, 0:2], e, a, self.agent_trans, self.agent_rotation)
-                    p_input['map_pred'].append(trans_map[0, :, :].copy())
-                    p_input['exp_pred'].append(trans_map[1, :, :].copy())
-                pose_pred = self.planner_pose_inputs[e, a].copy()
-                pose_pred[3:] = np.array((lx, rx, ly, ry))
-                p_input['pose_pred'].append(pose_pred)
-            self.local_input.append(p_input)
-            
-    def update_ft_merge_map(self, e):
-        if self.use_gt_map:
-            full_map = self.gt_full_map[e]
-        else:
-            full_map = self.full_map[e]
-        self.ft_merge_map[e] = np.zeros((2, self.full_w, self.full_h), dtype = np.float32) # only explored and obstacle
-        locations = []
-        for agent_id in range(self.num_agents):
-            output = torch.from_numpy(full_map[agent_id].copy())
-            n_rotated = F.grid_sample(output.unsqueeze(0).float(), self.rotation[e][agent_id].float(), align_corners=True)
-            n_map = F.grid_sample(n_rotated.float(), self.trans[e][agent_id].float(), align_corners = True)
-            agent_merge_map = n_map[0, :, :, :].numpy()
-
-            (index_a, index_b) = np.unravel_index(np.argmax(agent_merge_map[2, :, :], axis=None), agent_merge_map[2, :, :].shape) # might be inaccurate !!        
-            self.ft_merge_map[e] += agent_merge_map[:2]
-            locations.append((index_a, index_b))
-
-        for i in range(2):
-            self.ft_merge_map[e,i][self.ft_merge_map[e,i] > 1] = 1
-            self.ft_merge_map[e,i][self.ft_merge_map[e,i] < self.map_threshold] = 0
-        
-        return locations
     
     def ft_get_goal(self, inputs, goal_mask, pre_goals = None, e=None):
         obstacle = inputs['map_pred']
@@ -449,32 +390,14 @@ class HabitatRunner(Runner):
         
         goals = []
         locations = [(x-lx, y-ly) for x, y in locations]
-        if self.all_args.algorithm_name in ['ft_utility', 'ft_voronoi']:
-            pre_goals = pre_goals.copy()
-            pre_goals[:, 0] -= lx
-            pre_goals[:, 1] -= ly
-            if self.all_args.algorithm_name == 'ft_utility':
-                goals = max_utility_frontier(map, unexplored, locations, clear_radius = self.all_args.ft_clear_radius, cluster_radius = self.all_args.ft_cluster_radius, utility_radius = self.all_args.utility_radius, pre_goals = pre_goals, goal_mask = goal_mask, random_goal=self.all_args.ft_use_random)
-            elif self.all_args.algorithm_name == 'ft_voronoi':
-                goals = voronoi_based_planning(map, unexplored, locations, clear_radius = self.all_args.ft_clear_radius, cluster_radius = self.all_args.ft_cluster_radius, utility_radius = self.all_args.utility_radius, pre_goals = pre_goals, goal_mask = goal_mask, random_goal=self.all_args.ft_use_random)
-            goals[:, 0] += lx
-            goals[:, 1] += ly
-        else:
-            for agent_id in range(self.num_agents): # replan when goal is not target
-                if goal_mask[agent_id]:
-                    goals.append((-1,-1))
-                    continue
-                if self.all_args.algorithm_name == 'ft_apf':
-                    apf = APF(self.all_args)
-                    path = apf.schedule(map, unexplored, locations, steps, agent_id, clear_disk = True, random_goal=self.all_args.ft_use_random)
-                    goal = path[-1]
-                elif self.all_args.algorithm_name == 'ft_nearest':
-                    goal = nearest_frontier(map, unexplored, locations, steps, agent_id, clear_radius = self.all_args.ft_clear_radius, cluster_radius = self.all_args.ft_cluster_radius, random_goal=self.all_args.ft_use_random)
-                elif self.all_args.algorithm_name == 'ft_rrt':
-                    goal = rrt_global_plan(map, unexplored, locations, agent_id, clear_radius = self.all_args.ft_clear_radius, cluster_radius = self.all_args.ft_cluster_radius, step = self.env_step, utility_radius = self.all_args.utility_radius, random_goal=self.all_args.ft_use_random)
-                else:
-                    raise NotImplementedError
-                goals.append((goal[0] + lx, goal[1] + ly))
+        
+        pre_goals = pre_goals.copy()
+        pre_goals[:, 0] -= lx
+        pre_goals[:, 1] -= ly
+        goals = voronoi_based_planning(map, unexplored, locations, clear_radius = self.all_args.ft_clear_radius, cluster_radius = self.all_args.ft_cluster_radius, utility_radius = self.all_args.utility_radius, pre_goals = pre_goals, goal_mask = goal_mask, random_goal=self.all_args.ft_use_random)
+        goals[:, 0] += lx
+        goals[:, 1] += ly
+        
         return goals
   
     def render_gifs(self):
@@ -506,8 +429,8 @@ class HabitatRunner(Runner):
         self.left_corner = np.array(left_corner)
         self.left_corner[:,0] = self.left_corner[:,0]+map_size[0]//2
         self.left_corner[:,1] = self.left_corner[:,1]+map_size[1]//2
-        self.obstacle_map = np.array(obstacle_map)
-        self.explored_map = np.array(explored_map)
+        self.obstacle_map = obstacle_map
+        self.explored_map = explored_map
         self.all_obstacle_map = np.zeros((self.map_size[0],self.map_size[1]))
         self.all_explored_map = np.zeros((self.map_size[0],self.map_size[1]))
         for agent_id in range(self.num_agents):
@@ -526,8 +449,21 @@ class HabitatRunner(Runner):
         self.global_trace_map = np.zeros((self.num_agents, self.full_w, self.full_h), dtype=np.float32)
         self.first_compute = True
         self.first_compute_global_input()
-        
-        self.rnn_states = self.eval_compute_global_goal(self.rnn_states)
+        if self.use_tans:
+            self.rnn_states = self.eval_compute_global_goal(self.rnn_states)
+        elif self.use_vo:
+            # ft
+            self.ft_merge_map = np.zeros((self.n_rollout_threads, 2, self.map_size[0],  self.map_size[1]), dtype = np.float32) # only explored and obstacle
+            self.ft_goals = np.zeros((self.n_rollout_threads, self.num_agents, 2), dtype = np.int32)
+            self.ft_pre_goals = np.zeros((self.n_rollout_threads, self.num_agents, 2), dtype = np.int32)
+            self.ft_last_merge_explored_ratio = np.zeros((self.n_rollout_threads, 1), dtype= np.float32)
+            self.ft_mask = np.ones((self.map_size[0],  self.map_size[1]), dtype=np.int32)
+            self.ft_go_steps = np.zeros((self.n_rollout_threads, self.num_agents, 1), dtype= np.int32)
+            self.ft_map = [None for _ in range(self.n_rollout_threads)]
+            self.ft_lx = [None for _ in range(self.n_rollout_threads)]
+            self.ft_ly = [None for _ in range(self.n_rollout_threads)]
+            for e in range(self.n_rollout_threads):
+                self.ft_compute_global_goal(e)
         self.global_goal_position = self.global_goal[0].copy()
         for a in range(self.num_agents): 
             self.global_goal_position[a,0] = self.global_goal_position[a,0]-self.left_corner[a,0]
@@ -538,6 +474,9 @@ class HabitatRunner(Runner):
         self.pos = np.array(pos)
         self.pos[:,0] = self.pos[:,0]+self.map_size[0]//2
         self.pos[:,1] = self.pos[:,1]+self.map_size[1]//2
+        # Global Policy
+        if self.use_vo:
+            self.ft_go_steps += 1
         for agent_id in range(self.num_agents):
             self.global_trace_map[agent_id, int(self.pos[agent_id,0]-2):int(self.pos[agent_id,0]+3),int(self.pos[agent_id,1]-2):int(self.pos[agent_id,1]+3)] = 1
 
@@ -549,8 +488,8 @@ class HabitatRunner(Runner):
         self.left_corner = np.array(left_corner)
         self.left_corner[:,0] = self.left_corner[:,0]+self.map_size[0]//2
         self.left_corner[:,1] = self.left_corner[:,1]+self.map_size[1]//2
-        self.obstacle_map = np.array(obstacle_map)
-        self.explored_map = np.array(explored_map)
+        self.obstacle_map = obstacle_map
+        self.explored_map = explored_map
         self.all_obstacle_map = np.zeros((self.map_size[0],self.map_size[1]))
         self.all_explored_map = np.zeros((self.map_size[0],self.map_size[1]))
         for agent_id in range(self.num_agents):
@@ -565,174 +504,17 @@ class HabitatRunner(Runner):
             self.all_explored_map = np.maximum(self.all_explored_map,all_explored_map)
         self.compute_global_input()
         self.global_trace_map = np.zeros((self.num_agents, self.full_w, self.full_h), dtype=np.float32)
-        self.rnn_states = self.eval_compute_global_goal(self.rnn_states)
+        if self.use_tans:
+            self.rnn_states = self.eval_compute_global_goal(self.rnn_states)
+        elif self.use_vo:
+            for e in range(self.n_rollout_threads):        
+                self.ft_compute_global_goal(e) 
         self.global_goal_position = self.global_goal[0].copy() 
         for a in range(self.num_agents): 
             self.global_goal_position[a,0] = self.global_goal_position[a,0]-self.left_corner[a,0]
             self.global_goal_position[a,1] = self.global_goal_position[a,1]-self.left_corner[a,1]
         return self.global_goal_position  
         
-    
-    @torch.no_grad()
-    def eval_ft(self):
-        self.eval_infos = defaultdict(list)
-        #self.panoramic_infos = defaultdict(list)
-        
-        for episode in range(self.all_args.eval_episodes):
-            start = time.time()
-            # store each episode ratio or reward
-            self.init_env_info()
-            self.env_step = 0
-            if not self.use_delta_reward:
-                self.rewards = np.zeros((self.n_rollout_threads, self.num_agents, 1), dtype=np.float32) 
-
-            rnn_states = np.zeros((self.n_rollout_threads, self.num_agents, self.recurrent_N, self.hidden_size), dtype=np.float32)
-
-            # init map and pose 
-            self.init_map_and_pose() 
-            reset_choose = np.ones(self.n_eval_rollout_threads) == 1.0
-            # reset env
-            self.obs, infos = self.envs.reset(reset_choose)
-            self.trans = [infos[e]['trans'] for e in range(self.n_rollout_threads)]
-            self.rotation = [infos[e]['rotation'] for e in range(self.n_rollout_threads)]
-            self.scene_id = [infos[e]['scene_id'] for e in range(self.n_rollout_threads)]
-            self.agent_trans = [infos[e]['agent_trans'] for e in range(self.n_rollout_threads)]
-            self.agent_rotation = [infos[e]['agent_rotation'] for e in range(self.n_rollout_threads)]
-            self.explorable_map = np.array([infos[e]['explorable_map'] for e in range(self.n_rollout_threads)])
-            self.sim_map_size = np.array([infos[e]['sim_map_size'] for e in range(self.n_rollout_threads)])
-            self.empty_map = np.array([infos[e]['empty_map'] for e in range(self.n_rollout_threads)])
-            self.gt_full_map = np.array([infos[e]['gt_full_map'] for e in range(self.n_rollout_threads)])
-            if self.action_mask:
-                self.global_input['action_mask_obs'] = np.ones((self.n_rollout_threads, self.num_agents, 1, self.grid_size, self.grid_size), dtype=np.int32)
-                self.global_input['action_mask'] = np.ones((self.n_rollout_threads, self.num_agents, 1, self.grid_size, self.grid_size), dtype=np.int32)
-
-            # Predict map from frame 1:
-            self.run_slam_module(self.obs, self.obs, infos)
-
-            # Compute Global policy input
-            self.first_compute = True
-            self.first_compute_global_input()
-
-            # Compute Global goal
-            for e in range(self.n_rollout_threads):
-                self.ft_compute_global_goal(e)
-
-            # compute local input
-
-            self.ft_compute_local_input()
-
-            # Output stores local goals as well as the the ground-truth action
-            self.global_output = self.envs.get_short_term_goal(self.local_input)
-            self.global_output = np.array(self.global_output, dtype = np.long)
-            auc_area = np.zeros((self.n_rollout_threads, self.max_episode_length), dtype=np.float32)
-            auc_single_area = np.zeros((self.n_rollout_threads, self.num_agents, self.max_episode_length), dtype=np.float32)
-            for step in range(self.max_episode_length):
-                self.env_step = step
-                if step % 15 == 0:
-                    print(step)
-                local_step = step % self.num_local_steps
-                global_step = (step // self.num_local_steps) % self.episode_length
-                eval_global_step = step // self.num_local_steps + 1
-
-                self.last_obs = copy.deepcopy(self.obs)
-
-                # Sample actions
-                actions_env = self.compute_local_action()
-
-                # Obser reward and next obs
-                self.obs, reward, dones, infos = self.envs.step(actions_env)
-                #break
-                self.gt_full_map = np.array([infos[e]['gt_full_map'] for e in range(self.n_rollout_threads)])
-                for e in range(self.n_rollout_threads):
-                    # for agent_id in range(self.num_agents):
-                    #     self.panoramic_infos['graph_panoramic_rgb'].append(infos[e]['graph_panoramic_rgb'][agent_id])
-                    #     self.panoramic_infos['graph_panoramic_depth'].append(infos[e]['graph_panoramic_depth'][agent_id])
-                    for key in self.sum_env_info_keys:
-                        if key in infos[e].keys():
-                            self.env_info['sum_{}'.format(key)][e] += np.array(infos[e][key])
-                            if key == 'merge_explored_ratio' and self.use_eval:
-                                self.auc_infos['merge_auc'][episode, e, step] = self.auc_infos['merge_auc'][episode, e, step-1] + np.array(infos[e][key])
-                                auc_area[e, step] = auc_area[e, step-1] + np.array(infos[e][key])
-                            if key == 'explored_ratio' and self.use_eval:
-                                self.auc_infos['agent_auc'][episode, e, :, step] = self.auc_infos['agent_auc'][episode, e, :, step-1] + np.array(infos[e][key])
-                                auc_single_area[e, :, step] = auc_single_area[e, :, step-1] + np.array(infos[e][key])
-                    for key in self.equal_env_info_keys:
-                        if key == 'explored_ratio_step':
-                            for agent_id in range(self.num_agents):
-                                agent_k = "agent{}_{}".format(agent_id, key)
-                                if agent_k in infos[e].keys():
-                                    self.env_info[key][e][agent_id] = infos[e][agent_k]
-                        elif key == 'balanced_ratio':
-                            for agent_id in range(self.num_agents):
-                                for a in range(self.num_agents):
-                                    agent_k = "agent{}/{}_{}".format(agent_id, a, key)
-                                    if agent_k in infos[e].keys():
-                                        self.env_info[key][e][agent_id] = infos[e][agent_k] 
-                        else:
-                            if key in infos[e].keys():
-                                self.env_info[key][e] = infos[e][key]
-                    if self.env_info['sum_merge_explored_ratio'][e] <= self.all_args.explored_ratio_down_threshold:
-                        self.env_info['merge_global_goal_num_%.2f'%self.all_args.explored_ratio_down_threshold][e] = self.env_info['merge_global_goal_num'][e]
-                    
-                    if self.num_agents==1:
-                        if step in [49, 99, 149, 199, 249, 299, 349, 399, 449]:
-                            self.env_info[str(step+1)+'step_merge_auc'][e] = auc_area[e, :step+1].sum().copy()
-                            self.env_info[str(step+1)+'step_auc'][e] = auc_single_area[e, :, :step+1].sum(axis = 1)
-                            self.env_info[str(step+1)+'step_merge_overlap_ratio'][e] = infos[e]['overlap_ratio']
-                    else:
-                        if step in [49, 99, 119, 149, 179, 199, 249, 299]:
-                            self.env_info[str(step+1)+'step_merge_auc'][e] = auc_area[e, :step+1].sum().copy()
-                            self.env_info[str(step+1)+'step_auc'][e] = auc_single_area[e, :, :step+1].sum(axis = 1)
-                            self.env_info[str(step+1)+'step_merge_overlap_ratio'][e] = infos[e]['overlap_ratio'] 
-                
-                                
-                self.local_masks = np.ones((self.n_rollout_threads, self.num_agents, 1), dtype=np.float32)
-                self.local_masks[dones == True] = np.zeros(((dones == True).sum(), 1), dtype=np.float32)
-
-                self.global_masks *= self.local_masks
-
-                self.run_slam_module(self.last_obs, self.obs, infos)
-                self.update_local_map()
-                self.update_map_and_pose()
-
-                for a in range(self.num_agents):
-                    if self.use_gt_map:
-                        self.merge_map[:, a] = self.transform(self.gt_full_map, self.trans, self.rotation, self.agent_trans, self.agent_rotation, a)
-                    else:
-                        self.merge_map[:, a] = self.transform(self.full_map, self.trans, self.rotation, self.agent_trans, self.agent_rotation, a)
-
-                # Global Policy
-                self.ft_go_steps += 1
-
-                for e in range (self.n_rollout_threads):
-                    self.ft_last_merge_explored_ratio[e] = self.env_info['sum_merge_explored_ratio'][e]
-                    self.ft_compute_global_goal(e) 
-                        
-                # Local Policy
-                self.ft_compute_local_input()
-
-                # Output stores local goals as well as the the ground-truth action
-                self.global_output = self.envs.get_short_term_goal(self.local_input)
-                self.global_output = np.array(self.global_output, dtype = np.long)
-            
-            self.convert_info()
-            total_num_steps = (episode + 1) * self.max_episode_length * self.n_rollout_threads
-            if not self.use_render :
-                end = time.time()
-                self.env_infos['merge_runtime'].append((end-start)/self.max_episode_length)
-                self.log_env(self.env_infos, total_num_steps)
-                self.log_single_env(self.env_infos, total_num_steps)
-                self.log_agent(self.env_infos, total_num_steps)
-            
-        for k, v in self.env_infos.items():
-            print("eval average {}: {}".format(k, np.nanmean(v) if k == 'merge_explored_ratio_step' or k == "merge_explored_ratio_step_0.95"else np.mean(v)))
-
-        if self.all_args.save_gifs:
-            print("generating gifs....")
-            self.render_gifs()
-            print("done!")
-        #joblib.dump(self.panoramic_infos,'./dataset/22') 
-
     def render(self, obstacle_map, explored_map, pos, gif_dir):
         self.merge_obstacle_map = np.zeros((self.map_size[0],self.map_size[1]))
         self.merge_explored_map = np.zeros((self.map_size[0],self.map_size[1]))
