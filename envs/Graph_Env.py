@@ -230,14 +230,17 @@ class GraphHabitatEnv(MultiHabitatEnv):
 
     def get_runner_fmm_distance(self, positions, max_size):
         obstacle_map = positions['obstacle_map']
-        merge_obstacle_map= np.zeros((max_size[0],max_size[1]))
+        all_merge_obstacle_map= np.zeros((max_size[0],max_size[1]))
         start_origin = positions['x'].reshape(-1,2)
         final_origin = positions['y'].reshape(-1,2)
         corner = positions['corner']
         final_mask = False
-        obstacle_map_shape = obstacle_map.shape
-        merge_obstacle_map[corner[0]:corner[0]+obstacle_map_shape[0],corner[1]:corner[1]+obstacle_map_shape[1]] = obstacle_map
-        
+        for a in range(self.num_agents):
+            obstacle_map_shape = obstacle_map[a].shape
+            merge_obstacle_map= np.zeros((max_size[0],max_size[1]))
+            merge_obstacle_map[corner[a][0]:corner[a][0]+obstacle_map_shape[0],corner[a][1]:corner[a][1]+obstacle_map_shape[1]] = obstacle_map[a]
+            all_merge_obstacle_map = np.maximum(all_merge_obstacle_map, merge_obstacle_map)
+
         merge_ghost_mask = np.zeros_like(self.graph_agent_0.ghost_mask.reshape(-1))
         if final_origin.shape[0] != self.num_agents:
             final_mask = True
@@ -252,7 +255,7 @@ class GraphHabitatEnv(MultiHabitatEnv):
                         int(c * 100.0/self.map_resolution)]
         
            
-            traversible = np.rint(merge_obstacle_map)!= True 
+            traversible = np.rint(all_merge_obstacle_map)!= True 
        
             all_goal = []
             all_index = []
@@ -270,16 +273,15 @@ class GraphHabitatEnv(MultiHabitatEnv):
          
             
             for h in range(len(all_goal)):
-                r = np.rint(merge_obstacle_map).sum(axis =0).max() 
-                l = np.rint(merge_obstacle_map).sum(axis =1).max() 
+                r = np.rint(all_merge_obstacle_map).sum(axis =0).max() 
+                l = np.rint(all_merge_obstacle_map).sum(axis =1).max() 
                 rl = r if r > l else l
                 if reachable.max() < rl:
                     distance[i, all_index[h]] = -1
                 else:
-                
                     if reachable[all_goal[h][0], all_goal[h][1]] == reachable.max():
                         distance[i, all_index[h]] = -1
                     else:
-                        distance[i, all_index[h]] = reachable[all_goal[h][0], all_goal[h][1]]/300 #reachable.max()
+                        distance[i, all_index[h]] = reachable[all_goal[h][0], all_goal[h][1]]/500 #reachable.max()
         return distance
         
