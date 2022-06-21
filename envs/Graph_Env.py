@@ -253,9 +253,10 @@ class GraphHabitatEnv(MultiHabitatEnv):
             r, c = start_origin[i][0], start_origin[i][1]
             start = [int(r * 100.0/self.map_resolution),
                         int(c * 100.0/self.map_resolution)]
-        
+
+            traversible = skimage.morphology.binary_dilation(np.rint(all_merge_obstacle_map), 1) != True 
            
-            traversible = np.rint(all_merge_obstacle_map)!= True 
+            #traversible = np.rint(all_merge_obstacle_map)!= True 
        
             all_goal = []
             all_index = []
